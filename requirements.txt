@@ -1,0 +1,8 @@
+#==python 3.12.0
+requests==2.31.0
+pyarrow==14.0.1
+pandas==2.1.4
+google_cloud_bigquery==3.14.1
+google_auth==2.25.2
+schedule==1.2.1
+python-decouple==3.8
