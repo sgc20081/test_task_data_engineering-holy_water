@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 
 import schedule
 
@@ -7,13 +8,20 @@ from decouple import config
 # Внутрениие модули проекта
 from api_requests import *
 from utils import GetProperties, getparam_yesterday_date
+from data_mart_creating import create_data_marts
 
 api_url = config('API_URL')
 api_key = config('API_KEY')
 
+log_datetime = datetime.now()
+
+print(f'<{log_datetime}>: Приложение, по обработке данных, API запущено успешно')
+
 def from_api_to_bigquery():
 
     yester_date = getparam_yesterday_date()
+
+    print(f'<{log_datetime}>: Начинаю запрос данных по API за дату {yester_date}')
 
     InstallsAPIRequest(
                     url=api_url, 
@@ -38,6 +46,8 @@ def from_api_to_bigquery():
                     headers={'Authorization': api_key}, 
                     api_method='events', 
                     params={'date': yester_date})
+    
+    create_data_marts()
 
 schedule.every().day.at('02:00').do(from_api_to_bigquery)
 

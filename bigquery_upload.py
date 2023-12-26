@@ -1,3 +1,6 @@
+from datetime import datetime
+
+import google
 from google.cloud import bigquery
 from google.oauth2 import service_account
 
@@ -8,6 +11,8 @@ import pandas as pd
 from decouple import config
 
 import bigquery_settings as BG_S
+
+log_datetime = datetime.now()
 
 class BigQueryUploadData:
 
@@ -27,13 +32,13 @@ class BigQueryUploadData:
         df = pd.DataFrame(data)
 
         dataset = self.client.dataset(self.dataset_id)
-        print('Начало процесса загрузки данных в dataset', dataset)
+        print(f'<{log_datetime}>: Начало процесса загрузки данных в dataset', dataset)
         try:
             self.client.get_dataset(self.dataset_id)
-            print(f"Dataset {self.dataset_id} существует.")
+            print(f"<{log_datetime}>: Dataset {self.dataset_id} существует.")
         except Exception as e:
-            print(f"Dataset {self.dataset_id} не существует. Ошибка: {e}")
-            print('Создаётся новый dataset')
+            print(f"<{log_datetime}>: Dataset {self.dataset_id} не существует. Ошибка: {e}")
+            print(f'<{log_datetime}>: Создаётся новый dataset')
             self.client.create_dataset(dataset)
         
         self.bigquery_upload_data(df)
@@ -42,7 +47,7 @@ class BigQueryUploadData:
 
         table_ref = self.client.dataset(self.dataset_id).table(self.table_id)
         
-        print('Подключение создано')
+        print(f'<{log_datetime}>: Подключение создано')
         
         job_config = bigquery.LoadJobConfig(
             schema=self.schema,
@@ -51,14 +56,16 @@ class BigQueryUploadData:
             # "WRITE_TRUNCATE", если нужно перезаписать старые данные на новые данные из запроса
         )
         
-        print('Записи созданы')
+        print(f'<{log_datetime}>: Записи созданы')
         
         job = self.client.load_table_from_dataframe(df, table_ref, job_config=job_config)
         
-        print('Данные загружены в BigQuery')
+        print(f'<{log_datetime}>: Данные загружены в BigQuery')
         
-        job.result()  # Ждем завершения задачи загрузки
-
+        try:
+            job.result()  # Ждем завершения задачи загрузки
+        except google.api_core.exceptions.BadRequest as e:
+            print(f'<{log_datetime}>: Произошла ошибка {e}')
 
 class InstallsBigQueryUploadData(BigQueryUploadData):
     

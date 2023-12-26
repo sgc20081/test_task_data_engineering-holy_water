@@ -1,5 +1,6 @@
 import json
 import io
+from datetime import datetime
 
 import requests
 
@@ -9,6 +10,8 @@ import pandas as pd
 
 from bigquery_upload import *
 from utils import DataConversion
+
+log_datetime = datetime.now()
 
 class APIRequest:
     
@@ -32,6 +35,8 @@ class APIRequest:
 
         if self.api_method != None:
             self.url += self.api_method
+        
+        print(f'<{log_datetime}>: Запрос данных API по методу {self.api_method}')
 
         try:
             response = requests.get(self.url, headers=self.headers, params=self.params)
@@ -42,7 +47,7 @@ class APIRequest:
 
     # Используется для вывода результата в дочернем классе
     def api_response(self, response):
-        pass
+        print(f'<{log_datetime}>: Данные по методу {self.api_method} получены')
 
 class InstallsAPIRequest(APIRequest):
 
@@ -66,6 +71,8 @@ class InstallsAPIRequest(APIRequest):
     }
 
     def api_response(self, response):
+        super().api_response(response)
+        
         data = json.loads(response.content)
 
         for key, val in data.items():
@@ -106,6 +113,8 @@ class CostsAPIRequest(APIRequest):
     }
 
     def api_response(self, response):
+        super().api_response(response)
+
         data = response.content.decode('utf-8')
         data = data.replace('\t', ',')
         data_dict = data.split('\n')
@@ -160,6 +169,7 @@ class OrdersAPIRequest(APIRequest):
     }
 
     def api_response(self, response):
+        super().api_response(response)
         
         table = pq.read_table(io.BytesIO(response.content))
         tb_dict = table.to_pydict()
@@ -234,6 +244,8 @@ class EventsAPIRequest(APIRequest):
     }
 
     def api_response(self, response):
+        super().api_response(response)
+
         data = json.loads(response.content.decode('utf-8'))
 
         for key, val in data.items():
@@ -271,5 +283,5 @@ class EventsAPIRequest(APIRequest):
         
             elif key == 'next_page':
                 self.params['next_page'] = val
-                print('Пошёл запрос следующей страницы')
+                print('<{log_datetime}>: Пошёл запрос следующей страницы')
                 self.make_api_request()
