@@ -62,6 +62,8 @@ class DataConversion:
             return self.str_to_datetime(value)
         elif isinstance(value, int):
             return self.int_to_datetime(value)
+        else:
+            return value
 
     @classmethod
     def _bigquery_schema_decimal_(self, value):

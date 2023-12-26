@@ -7,6 +7,8 @@ import pandas as pd
 
 from decouple import config
 
+import bigquery_settings as BG_S
+
 class BigQueryUploadData:
 
     project_id = None
@@ -25,13 +27,13 @@ class BigQueryUploadData:
         df = pd.DataFrame(data)
 
         dataset = self.client.dataset(self.dataset_id)
-        print('Это датасет', dataset)
+        print('Начало процесса загрузки данных в dataset', dataset)
         try:
             self.client.get_dataset(self.dataset_id)
-            print(f"Датасет {self.dataset_id} существует.")
+            print(f"Dataset {self.dataset_id} существует.")
         except Exception as e:
-            print(f"Датасет {self.dataset_id} не существует. Ошибка: {e}")
-            print('Создаётся новый датасет')
+            print(f"Dataset {self.dataset_id} не существует. Ошибка: {e}")
+            print('Создаётся новый dataset')
             self.client.create_dataset(dataset)
         
         self.bigquery_upload_data(df)
@@ -39,41 +41,32 @@ class BigQueryUploadData:
     def bigquery_upload_data(self, df):
 
         table_ref = self.client.dataset(self.dataset_id).table(self.table_id)
+        
         print('Подключение создано')
+        
         job_config = bigquery.LoadJobConfig(
             schema=self.schema,
-            # write_disposition="WRITE_TRUNCATE",  # Замените на "WRITE_APPEND", если вы хотите добавить данные
-            write_disposition="WRITE_APPEND",  # Замените на "WRITE_APPEND", если вы хотите добавить данные
+            write_disposition="WRITE_APPEND",  
+            # "WRITE_APPEND", если нужно добавить данные к уже существующим в таблице
+            # "WRITE_TRUNCATE", если нужно перезаписать старые данные на новые данные из запроса
         )
+        
         print('Записи созданы')
         
-        try:
-            job = self.client.load_table_from_dataframe(df, table_ref, job_config=job_config)
-        except pa.lib.ArrowTypeError as e:
-            print("ArrowTypeError occurred:")
-            print(e)
-            print("Problematic values:")
-            for column in df.columns:
-                problematic_values = df[df[column].apply(lambda x: isinstance(x, str))]
-                if not problematic_values.empty:
-                    print(f"Column: {column}")
-                    print(problematic_values)
-                    raise e
+        job = self.client.load_table_from_dataframe(df, table_ref, job_config=job_config)
         
         print('Данные загружены в BigQuery')
+        
         job.result()  # Ждем завершения задачи загрузки
-
-
-json_key = config('GOOGLE_BIGQUERY_JSON_KEY')
 
 
 class InstallsBigQueryUploadData(BigQueryUploadData):
     
-    project_id = 'test-task-data-manager'
-    credentials = service_account.Credentials.from_service_account_file(json_key)
+    project_id = BG_S.holly_water_project_id
+    credentials = BG_S.holly_water_credentials
     
-    dataset_id = 'holly_water_api'
-    table_id = 'installs_table'
+    dataset_id = BG_S.InstallsBQSettings.dataset_id
+    table_id = BG_S.InstallsBQSettings.table_id
     
     schema = [
         bigquery.SchemaField('install_time', 'DATETIME'),
@@ -96,11 +89,11 @@ class InstallsBigQueryUploadData(BigQueryUploadData):
 
 class OredersBigQueryUploadData(BigQueryUploadData):
 
-    project_id = 'test-task-data-manager'
-    credentials = service_account.Credentials.from_service_account_file(json_key)
+    project_id = BG_S.holly_water_project_id
+    credentials = BG_S.holly_water_credentials
     
-    dataset_id = 'holly_water_api'
-    table_id = 'orders_table'
+    dataset_id = BG_S.OrdersBQSettings.dataset_id
+    table_id = BG_S.OrdersBQSettings.table_id
     
     schema = [
         bigquery.SchemaField('event_time', 'DATETIME'),
@@ -119,11 +112,11 @@ class OredersBigQueryUploadData(BigQueryUploadData):
 
 class CostsBigQueryUploadData(BigQueryUploadData):
     
-    project_id = 'test-task-data-manager'
-    credentials = service_account.Credentials.from_service_account_file(json_key)
+    project_id = BG_S.holly_water_project_id
+    credentials = BG_S.holly_water_credentials
     
-    dataset_id = 'holly_water_api'
-    table_id = 'costs_table'
+    dataset_id = BG_S.CostsBQSettings.dataset_id
+    table_id = BG_S.CostsBQSettings.table_id
     
     schema = [
         bigquery.SchemaField('landing_page', 'STRING', mode='NULLABLE'),
@@ -139,11 +132,11 @@ class CostsBigQueryUploadData(BigQueryUploadData):
 
 class EventsBigQueryUploadData(BigQueryUploadData):
     
-    project_id = 'test-task-data-manager'
-    credentials = service_account.Credentials.from_service_account_file(json_key)
+    project_id = BG_S.holly_water_project_id
+    credentials = BG_S.holly_water_credentials
     
-    dataset_id = 'holly_water_api'
-    table_id = 'events_table'
+    dataset_id = BG_S.EventsBQSettings.dataset_id
+    table_id = BG_S.EventsBQSettings.table_id
     
     schema = [
         bigquery.SchemaField('user_id', 'STRING'),

@@ -89,53 +89,7 @@ class InstallsAPIRequest(APIRequest):
                 #     obj = Installs(**record)
                 #     objects_list.append(obj)
 
-                # Installs.objects.bulk_create(objects_list)S
-
-class OrdersAPIRequest(APIRequest):
-
-    schema = {
-        'event_time': 'DATETIME',
-        'transaction_id': 'STRING',
-        'type': 'STRING',
-        'origin_transaction_id': 'STRING',
-        'category': 'STRING',
-        'payment_method': 'STRING',
-        'fee': 'DECIMAL',
-        'tax': 'DECIMAL',
-        'iap_item_name': 'STRING',
-        'iap_item_price': 'DECIMAL',
-        'discount_code': 'STRING',
-        'discount_amount': 'DECIMAL',
-    }
-
-    def api_response(self, response):
-
-        table = pq.read_table(io.BytesIO(response.content))
-        tb_dict = table.to_pydict()
-        to_db_list = []
-        
-        for field, value in tb_dict.items():
-            
-            if '.' in field:
-                field = field.replace('.', '_')
-
-            for i, content in enumerate(value):
-                
-                content = DataConversion.make_bigquery_valid_data(self.schema, field, content)
-                
-                if 0 <= i < len(to_db_list):
-                    to_db_list[i].update({field: content})
-                else:
-                    to_db_list.append({field: content})
-        
-        OredersBigQueryUploadData(to_db_list)
-        # objects_list = []
-
-        # for order in to_db_list:
-        #     obj = Orders(**order)
-        #     objects_list.append(obj)
-
-        # Orders.objects.bulk_create(objects_list)
+                # Installs.objects.bulk_create(objects_list)
 
 class CostsAPIRequest(APIRequest):
 
@@ -187,6 +141,52 @@ class CostsAPIRequest(APIRequest):
         #     objects_list.append(obj)
         
         # Costs.objects.bulk_create(objects_list)
+
+class OrdersAPIRequest(APIRequest):
+
+    schema = {
+        'event_time': 'DATETIME',
+        'transaction_id': 'STRING',
+        'type': 'STRING',
+        'origin_transaction_id': 'STRING',
+        'category': 'STRING',
+        'payment_method': 'STRING',
+        'fee': 'DECIMAL',
+        'tax': 'DECIMAL',
+        'iap_item_name': 'STRING',
+        'iap_item_price': 'DECIMAL',
+        'discount_code': 'STRING',
+        'discount_amount': 'DECIMAL',
+    }
+
+    def api_response(self, response):
+        
+        table = pq.read_table(io.BytesIO(response.content))
+        tb_dict = table.to_pydict()
+        to_db_list = []
+        
+        for field, value in tb_dict.items():
+            
+            if '.' in field:
+                field = field.replace('.', '_')
+
+            for i, content in enumerate(value):
+                
+                content = DataConversion.make_bigquery_valid_data(self.schema, field, content)
+                
+                if 0 <= i < len(to_db_list):
+                    to_db_list[i].update({field: content})
+                else:
+                    to_db_list.append({field: content})
+        
+        OredersBigQueryUploadData(to_db_list)
+        # objects_list = []
+
+        # for order in to_db_list:
+        #     obj = Orders(**order)
+        #     objects_list.append(obj)
+
+        # Orders.objects.bulk_create(objects_list)
 
 class EventsAPIRequest(APIRequest):
 

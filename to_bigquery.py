@@ -38,7 +38,6 @@ def from_api_to_bigquery():
                     headers={'Authorization': api_key}, 
                     api_method='events', 
                     params={'date': yester_date})
-    
 
 schedule.every().day.at('02:00').do(from_api_to_bigquery)
 
