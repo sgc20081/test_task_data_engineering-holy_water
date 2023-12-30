@@ -1,5 +1,6 @@
 import time
 from datetime import datetime
+import socket
 
 import schedule
 
@@ -16,6 +17,44 @@ api_key = config('API_KEY')
 log_datetime = datetime.now()
 
 print(f'<{log_datetime}>: Приложение, по обработке данных, API запущено успешно')
+
+def process_connection(connection):
+    # Здесь вы можете добавить логику обработки подключения
+    data = connection.recv(1024)
+    if data:
+        print(f"Received data: {data}")
+        # Добавьте свою логику обработки данных
+    connection.close()
+
+def main():
+    # Получить порт из переменной окружения PORT, установленной Dockerfile или другим способом
+    port = int(config("PORT"))
+
+    # Создать сокет
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    # Привязать сокет к порту
+    sock.bind(("", port))
+
+    # Запустить сервер
+    sock.listen(5)
+
+    print(f"Server listening on port {port}")
+
+    while True:
+        # Принять входящее подключение
+        connection, address = sock.accept()
+
+        # Обработать подключение
+        process_connection(connection)
+
+if __name__ == "__main__":
+    main()
+
+if config('TEST') == 'test':
+    print('Переменные окружения успено загружены')
+else:
+    print('Ошибка при загрузке переменных окружения')
 
 def from_api_to_bigquery():
 
@@ -47,7 +86,7 @@ def from_api_to_bigquery():
                     api_method='events', 
                     params={'date': yester_date})
     
-    create_data_marts()
+    create_data_marts(yester_date)
 
 schedule.every().day.at('02:00').do(from_api_to_bigquery)
 

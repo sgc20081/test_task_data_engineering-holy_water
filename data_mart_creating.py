@@ -11,7 +11,7 @@ log_datetime = datetime.now()
 
 client = bigquery.Client(project=BG_S.holly_water_project_id, credentials=BG_S.holly_water_credentials)
 
-def create_data_marts():
+def create_data_marts(date):
     
     print(f'<{log_datetime}>: Начинается процесс создания Data Mart для получения CPI')
 
@@ -27,7 +27,7 @@ def create_data_marts():
                     FROM 
                         {BG_S.InstallsBQSettings.dataset_id}.{BG_S.InstallsBQSettings.table_id}
                     WHERE 
-                        DATE(install_time) BETWEEN DATE('2023-12-10') AND DATE('2023-12-25')
+                        DATE(install_time) BETWEEN DATE('2023-12-10') AND DATE({date})
                     GROUP BY
                         install_date
                     ORDER BY
@@ -69,7 +69,7 @@ def create_data_marts():
                     FROM 
                         {BG_S.OrdersBQSettings.dataset_id}.{BG_S.OrdersBQSettings.table_id}
                     WHERE
-                        DATE(event_time) BETWEEN DATE('2023-12-10') AND DATE('2023-12-25')
+                        DATE(event_time) BETWEEN DATE('2023-12-10') AND DATE({date})
                     GROUP BY
                         orders_date
                     ORDER BY
@@ -103,7 +103,7 @@ def create_data_marts():
                     FROM 
                         {BG_S.OrdersBQSettings.dataset_id}.{BG_S.OrdersBQSettings.table_id}
                     WHERE
-                        DATE(event_time) BETWEEN DATE('2023-12-10') AND DATE('2023-12-25')
+                    DATE(event_time) BETWEEN DATE('2023-12-10') AND DATE({date})
                     GROUP BY
                         orders_date
                     ORDER BY

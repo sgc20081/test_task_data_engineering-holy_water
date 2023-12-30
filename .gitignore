@@ -1,3 +1,11 @@
 .env
 api-properties.txt
 test-task-data-manager-a8796afc73ae.json
+Dockerfile
+allow-all.yaml
+deployment.yaml
+secret.yaml
+service.yaml
+test-task-data-manager-a8796afc73ae.json
+kubernetes-test-task-data-manager-e388e0c9a28c.json
+
